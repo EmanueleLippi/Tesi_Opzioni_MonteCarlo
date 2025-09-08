@@ -1,22 +1,5 @@
-# Python
 __pycache__/
 *.pyc
-.venv/
-.env
-
-# Jupyter
 .ipynb_checkpoints/
-.notebook_cache/
-
-# Dati/risultati
-data/raw/*
-data/processed/*
-experiments/*/results.csv
-experiments/*/figures/
-
-# LaTeX
-*.aux *.log *.out *.toc *.lot *.lof *.bbl *.blg
-
-# OS/IDE
+data/results/*
 .DS_Store
-.vscode/

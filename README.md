@@ -1,19 +1,12 @@
-# Tesi Monte Carlo – Option Pricing
+# Tesi Monte Carlo – Pricing di Opzioni
 
-## Obiettivi
-- Pricing di opzioni (europee, barrier, jump-diffusion) via Monte Carlo.
-- Confronto con soluzioni in forma chiusa (BSM) e analisi VR.
+Questa repository contiene:
+- Codice Python per il pricing di opzioni con simulazioni Monte Carlo.
+- Notebook di prova ed esperimenti.
+- Risultati e figure da inserire nella tesi.
 
 ## Struttura
-- `src/tesi_montecarlo`: codice del pacchetto (processi, prodotti, MC, VR).
-- `notebooks`: analisi e presentazioni ordinate.
-- `experiments`: run riproducibili con config salvate.
-- `tests`: unit test (MC vs BSM ecc.).
-- `reports`: figure e tabelle pronte per la tesi.
-
-## Setup
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
-pre-commit install
-pytest
+- `notebooks/` → analisi ed esperimenti
+- `src/` → funzioni riutilizzabili (processi, payoff, MC)
+- `data/` → output e risultati
+- `thesis/` → bozze e appunti

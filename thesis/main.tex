@@ -1,0 +1,678 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[italian]{babel}
+\usepackage{newlfont}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\textwidth=450pt\oddsidemargin=0pt
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+{{\Large{\textsc{Alma Mater Studiorum $\cdot$ Universit\`a di Bologna}}}} \rule[0.1cm]{15.8cm}{0.1mm}
+\rule[0.5cm]{15.8cm}{0.6mm}
+{\small{\bf SCUOLA DI SCIENZE\\
+Corso di Laurea in Informatica per il Management }}
+\end{center}
+\vspace{15mm}
+\begin{center}
+{\LARGE{\bf Pricing di Opzioni}}\\
+\vspace{3mm}
+{\LARGE{\bf Metodo}}\\
+\vspace{3mm}
+{\LARGE{\bf Monte Carlo}}\\
+\end{center}
+\vspace{40mm}
+\par
+\noindent
+\begin{minipage}[t]{0.47\textwidth}
+{\large{\bf Relatore:\\
+Chiar.mo Prof.\\
+Gianluca Tassinari}}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.47\textwidth}\raggedleft
+{\large{\bf Presentata da:\\%
+Emanuele Lippi}}
+\end{minipage}
+\vspace{20mm}
+\begin{center}
+{\large{\bf Sessione\\
+Anno Accademico 2025/2026}}
+\end{center}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+
+\newpage
+\section{Introduzione}
+\subsection{Obiettivi}
+L'obiettivo di questo documento è presentare il metodo di pricing di opzioni attraverso simulazioni Monte Carlo. Verranno analizzati i fondamenti teorici e pratici di questa tecnica, evidenziando i suoi punti di forza e le sue limitazioni.
+
+\subsection{Struttura del documento}
+Il documento è strutturato come segue:
+\begin{itemize}
+    \item Nel Capitolo 1 viene fornita un'introduzione al pricing delle opzioni e ai metodi tradizionali.
+    \item Nel Capitolo 2 viene descritto il metodo Monte Carlo, con particolare attenzione alla sua implementazione.
+    \item Nel Capitolo 3 vengono presentati i risultati delle simulazioni e un'analisi comparativa con i metodi tradizionali.
+    \item Infine, nel Capitolo 4 si traggono le conclusioni e si propongono sviluppi futuri.
+\end{itemize}
+
+\newpage
+\section{Capitolo 1: Fondamenti del Pricing delle Opzioni}
+
+Il pricing delle opzioni è un tema centrale nella finanza moderna, in quanto consente di determinare il valore di strumenti finanziari derivati. Le opzioni sono contratti che conferiscono il diritto, ma non l'obbligo, di acquistare o vendere un'attività sottostante a un prezzo predeterminato entro una certa scadenza. La valutazione di queste opzioni è fondamentale per gli investitori e le istituzioni finanziarie, poiché influisce sulle decisioni di investimento e sulla gestione del rischio.
+
+Esistono diversi modelli per il pricing delle opzioni, tra cui il modello di Black-Scholes, che è uno dei più utilizzati. Questo modello si basa su assunzioni specifiche riguardanti il comportamento dei mercati e delle attività sottostanti. Tuttavia, presenta alcune limitazioni, soprattutto in condizioni di mercato estreme o per opzioni con caratteristiche particolari.
+
+In questo capitolo, verranno esaminati i principali metodi di pricing delle opzioni, con un focus sulle loro applicazioni e limitazioni.
+
+\subsection{Teoria: Opzioni}
+Le Opzioni sono uno tipo di contratto finanziario che danno il diritto, ma non l'obbligo, di comprare o vendere un'attività sottostante a un prezzo specifico entro una data di scadenza. Le opzioni possono essere classificate in due categorie principali:
+
+\begin{itemize}
+    \item opzioni call: conferiscono il diritto di acquistare l'attività sottostante a un prezzo specificato.
+    \item opzioni put: conferiscono il diritto di vendere l'attività sottostante a un prezzo specificato.
+\end{itemize}
+
+Terminologia:
+\begin{itemize}
+    \item Prezzo di esercizio (strike price): il prezzo al quale l'opzione può essere esercitata.
+    \item Scadenza (expiration date): la data entro la quale l'opzione deve essere esercitata.
+    \item Premio (Payoff): il prezzo pagato per acquistare l'opzione.
+\end{itemize}
+
+Payoff opzione Call:
+\begin{itemize}
+    \item Se il prezzo dell'attività sottostante è superiore al prezzo di esercizio, il payoff è dato dalla differenza tra il prezzo dell'attività e il prezzo di esercizio.
+    \item Se il prezzo dell'attività sottostante è inferiore o uguale al prezzo di esercizio, il payoff è zero.
+\end{itemize}
+
+\[
+\mathrm{Payoff}_{\mathrm{call}} = \max(S_T - K,\, 0)
+\]
+
+dove \( S_T \) è il prezzo dell'attività sottostante alla scadenza e \( K \) è il prezzo di esercizio.
+
+Payoff opzione Put:
+\begin{itemize}
+    \item Se il prezzo dell'attività sottostante è inferiore al prezzo di esercizio, il payoff è dato dalla differenza tra il prezzo di esercizio e il prezzo dell'attività.
+    \item Se il prezzo dell'attività sottostante è superiore o uguale al prezzo di esercizio, il payoff è zero.
+\end{itemize}
+
+\[
+\mathrm{Payoff}_{\mathrm{put}} = \max(K - S_T,\, 0)
+\]
+
+dove \( S_T \) è il prezzo dell'attività sottostante alla scadenza e \( K \) è il prezzo di esercizio.
+
+Generalmente ogni contratto di opzione dà il diritto alla parte lunga di comprare o vendere 100 azioni al prezzo di esercizio.
+
+Altre terminologie importanti:
+\begin{itemize}
+    \item \textbf{classe di opzioni}: insieme di tutte le opzioni dello stesso tipo con lo stesso sottostante.
+    \item \textbf{serie di opzioni}: insieme di tutte le opzioni della stessa classe con lo stesso prezzo di esercizio.
+    \item \textbf{Opzione in the money (ITM)}: opzione che se immediatamente esercitata genererebbe un profitto per la parte lunga.
+    \item \textbf{Opzione out of the money (OTM)}: opzione che se immediatamente esercitata non genererebbe un profitto per la parte lunga.
+    \item \textbf{Opzione at the money (ATM)}: opzione il cui prezzo di esercizio è uguale al prezzo dell'attività sottostante.
+    \item \textbf{Valore intrinseco}: il valore attuale dell'opzione se fosse esercitata immediatamente.
+    \item \textbf{Valore temporale}: la differenza tra il prezzo dell'opzione e il suo valore intrinseco.
+    \item \textbf{Valore complessivo}: la somma del valore intrinseco e del valore temporale.
+\end{itemize}
+\newpage
+\subsubsection{Teoria: Fattori che influenzano il prezzo delle opzioni sulle Azioni}
+
+I principali fattori che influenzano il prezzo delle opzioni sulle azioni includono:
+
+\begin{itemize}
+    \item \textbf{Prezzo dell'attività sottostante}: un aumento del prezzo dell'attività sottostante tende ad aumentare il prezzo delle opzioni call e a diminuire il prezzo delle opzioni put.
+    \item \textbf{Prezzo di esercizio}: un aumento del prezzo di esercizio tende a diminuire il prezzo delle opzioni call e ad aumentare il prezzo delle opzioni put.
+    \item \textbf{Volatilità}: un aumento della volatilità dell'attività sottostante tende ad aumentare il prezzo di entrambe le opzioni call e put, poiché aumenta l'incertezza riguardo al prezzo futuro dell'attività.
+    \item \textbf{Tempo alla scadenza}: un aumento del tempo alla scadenza tende ad aumentare il prezzo delle opzioni, poiché aumenta la probabilità che l'opzione diventi redditizia.
+    \item \textbf{Tassi di interesse}: un aumento dei tassi di interesse tende ad aumentare il prezzo delle opzioni call e a diminuire il prezzo delle opzioni put.
+    \item \textbf{Dividendi}: l'aspettativa di pagamenti di dividendi sull'attività sottostante tende a diminuire il prezzo delle opzioni call e ad aumentare il prezzo delle opzioni put.
+\end{itemize}
+
+\newpage
+\subsubsection{Teoria: Limiti Superiori e Inferiori per i prezzi delle opzioni}
+
+Se il prezzo dell'opzione si trova sopra o sotto al limite superiore o inferiore alla esiste opportunità di arbitraggio. In particolare:
+
+
+\begin{itemize}
+    \item \textbf{Limite superiore call europee}: il prezzo dell'opzione non può essere superiore del prezzo del sottostante:
+    \[
+    \mathrm{Limite}_{\mathrm{superiore-call}} = c \leq S_0
+    \]
+
+\item \textbf{Limite superiore put europee}: il prezzo dell'opzione non può essere superiore del prezzo di esercizio:
+    \[
+    \mathrm{Limite}_{\mathrm{superiore-put}} = p \leq Ke^{-rT}
+    \]
+\item \textbf{Limite inferiore call europee}: il prezzo dell'opzione non può essere inferiore al valore intrinseco:
+    \[
+    \mathrm{Limite}_{\mathrm{inferiore-call}} = c \geq S_0 - Ke^{-rT}
+    \]
+
+\item \textbf{Limite inferiore put europee}: il prezzo dell'opzione non può essere inferiore al valore intrinseco:
+    \[
+    \mathrm{Limite}_{\mathrm{inferiore-put}} = p \geq Ke^{-rT} - S_0
+    \]
+\end{itemize}
+\subsubsection{Put-Call Parity per Opzioni Europee}
+Il valore di una call europea con un dato prezzo d'esercizio, una data scadenza può essere dedotto da una put europea con lo stesso prezzo d'esercizio e la stessa scadenza e viceversa tramite l'equazione:
+\[
+c + K e^{-rT} = p + S_0
+\]
+dove:
+\begin{itemize}
+    \item \(c\) è il prezzo della call europea
+    \item \(p\) è il prezzo della put europea
+    \item \(K\) è il prezzo di esercizio
+    \item \(S_0\) è il prezzo attuale dell'attività sottostante
+    \item \(r\) è il tasso di interesse privo di rischio
+    \item \(T\) è il tempo alla scadenza
+\end{itemize}
+Se questa relazione non è soddisfatta, esiste un'opportunità di arbitraggio.
+\newpage
+\subsection{Teoria: Processi di Wiener e Lemma di Itô}
+\subsubsection{Processo di Markov}
+Categoria di processi stocastici in cui solo il valore attuale della variabile è rilevante per la previsione dei valori futuri, rendendo il processo "senza memoria".
+Si ipotizza che i prezzi delle azioni seguano un processo di Markov, il che e' coerente con l'idea che le informazioni passate non influenzino le aspettative future oltre alla teoria che il prezzo corrente di 1 azione contiene in se tutta l'informazione presente nella serie storica dei prezzi.
+\newline
+\textbf{Processi stocastici in tempo continuo:} se una variabile segue un processo Markoviano, la distribuzione probabilistica della variazione di valore in un periodo lungo T è normalmente distribuita.
+\[
+X_T - X_0 \sim \mathcal{N} (0, T)
+\]
+Nota importante: nei processi di Markov, le varianze delle variazioni relative a intervalli di tempo contigui sono addittive mentre le deviazioni standard no.
+\subsubsection{Processo di Wiener o Moti browniani}
+Il processo di Wiener, noto anche come moto browniano, è un caso particolare di processo di Markov con variazione media nulla e tasso di varianza unitaria.
+\newline
+2 le proprietà per cui un processo stocastico Z è un processo di Wiener:
+\begin{itemize}
+    \item La variazione \(\bigtriangleup z\) in un intervallo di tempo \(\bigtriangleup t\) è: \(\bigtriangleup z = \epsilon \sqrt{\bigtriangleup t}\)
+    in cui \(\epsilon\) è una variabile casuale standard normalmente distribuita.
+    \item I valori \(\bigtriangleup z\) sono indipendenti
+\end{itemize}
+La prima proprietà implica che la variazione \(\bigtriangleup z\) in un intervallo temporale \(\bigtriangleup t\) è una variabile casuale distribuita normalmente, ovvero \(\bigtriangleup z \sim \mathcal{N}(0, \bigtriangleup t)\), con deviazione standard \(\sigma = \sqrt{\bigtriangleup t}\).
+\newline
+La seconda proprietà implica che Z segue un processo di Markov.
+La variazione è uguale alla somma delle variazioni di Z in N piccoli intervalli lunghi \(\bigtriangleup t\).
+\[
+\Longrightarrow \quad N = \frac{T}{\bigtriangleup t} \quad \Longleftrightarrow \quad Z_T - Z_0 = \sum_{i=1}^{N} \bigtriangleup Z_i = \sum_{i=1}^{N} \epsilon_i \sqrt{\bigtriangleup t}
+\]
+In base alla seconda proprietà gli \(\epsilon_i\) sono indipendenti
+\[
+Z_T - Z_0 \sim \mathcal{N}(0, N \bigtriangleup t = T) \Longrightarrow Z_T - Z_0 \sim \mathcal{N}(0, T)
+\]
+Il processo di Wiener può essere definito come il limite degli incrementi discreti quando \(\Delta t \to 0\):
+
+\[
+W_T = \lim_{\Delta t \to 0} \sum_{i=1}^{T / \Delta t} \Delta Z_i = Z_T - Z_0
+\]
+
+Di conseguenza, il cammino risultante è frastagliato, poiché la dimensione dell'incremento \(\bigtriangleup z\) in un intervallo \(\bigtriangleup t\) è proporzionale a \(\sqrt{\bigtriangleup t}\)
+
+Altre proprietà importanti del processo di Wiener includono:
+\begin{itemize}
+    \item Valore atteso della lunghezza del sentiero seguito da Z in qualsiasi intervallo è \(\infty\)
+    \item Valore atteso del numero di volte in cui Z = v è \(\infty\)
+\end{itemize}
+\subsubsection{Processi di Wiener generalizzati}
+Tasso di deriva: variazione attesa per unita' di tempo
+Tasso di varianza: varianza della variazione per unita' di tempo
+\newline
+Quando il tasso di deriva e' = 0
+\newline
+\(\rightarrow\) il valore atteso di \(Z_T\) = \(Z_0\)  
+\newline
+Quando il tasso di varianza e' = 1
+\newline
+\(\rightarrow\) la varianza \(Z_T - Z_0\) = \(1*T\)
+\newline
+Processo di Wiener generalizzato di una variabile X in termini \( dz \):
+
+\[
+dx = a \, dt + b \, dz 
+\]
+
+con \( a, b \) costanti.\\
+
+\( a \, dt \): implica che la variabile \( X \) ha una variazione attesa per unità di tempo pari ad \( a \)
+
+\[
+dx = a \, dt \Longrightarrow  \frac{dx}{dt} = a
+\]
+
+integro poi rispetto a \( t \):
+
+\[
+\int a \, dt = X_0 + at = X
+\]
+
+Quindi in \( T \), \( X \) aumenta pari ad \( aT \).\\
+
+\( b \, dZ \): rappresenta il termine di rumore (noise), ovvero la componente di variabilità aleatoria nel percorso temporale seguito dalla variabile \( X \).
+
+\[
+\Longrightarrow \text{ la quantità di rumore è pari a } b \text{ volte un processo di Wiener}.
+\]
+
+Le variazioni di \( X \) in un intervallo di tempo \( T \) sono date da:
+\[
+\Delta X = a\Delta + b \epsilon \sqrt{\Delta t} \Longrightarrow X \sim \mathcal{N}( aT, b^2 \Delta t)
+\]
+
+\newpage
+\subsubsection{Processi di Itô}
+Un processo di Itô è un particolare processo di Wiener in cui \( a, b \) sono funzioni del valore della variabile \( X \) e \( t \).
+\[
+dX = a(X, t)dt + b(X, t)dz
+\]
+Di conseguenza, il tasso di deriva e il tasso di varianza non sono constanti ma cambiano con il passare del tempo e con il valore della variabile \( X \).
+\[
+\Delta X = a(X, t)dt + b(X, t) \epsilon \sqrt{\Delta t}
+\]
+Possiamo approssimare per ipotesi che il tasso di deriva e di varianza di \(X\) siano costanti al livello di \(a(X, t)\) e \(b^2(X, t)\) nell'intervallo di tempo \(t\) a \(\Delta t\).
+\subsubsection{Processo Stocastico per i prezzi delle Azioni senza Dividendi}
+Ipotiziamo che il tasso di rendimento dell'azione (ossia la deriva rapportata al prezzo) sia costante.
+\newline
+Ciò implica che la deriva di \(S\) è \(\mu S\) quindi in \(\Delta t\) la variazione attesa di \(S\) è: 
+
+\[
+\Delta S = \mu S \Delta t
+\]
+con \(\mu = \text{tasso di rendimento dell'azione}\)
+\newline
+Se il tasso di varianza = 0
+\newline
+\(\Longrightarrow\lim_{\Delta t \to 0} dS = \mu S dt \Longrightarrow dS = \mu dt \text{ da cui:} \Longrightarrow S_T = S_0e^{\mu T}\)
+Ma il prezzo è soggetto a volatilità \(\Longrightarrow\) std del tasso di rendimento in \(\Delta t\) sia la stessa indipendentemente dal livello del prezzo
+\newline
+La std di \(\Delta S\) in \(Delta t\) deve essere proporzionale al S:
+\[
+dS = \mu S dt + \sigma S dz \text{ da cui } \frac{dS}{S} = \mu dt + \sigma dz \textbf{ Moto Geometrico browniano}
+\]
+\newpage
+\subsubsection{Modello in tempo discreto}
+\(\frac{\Delta S}{S} = \mu \Delta t + \sigma \epsilon \sqrt{\Delta t}\)
+Il secondo addendo introduce la componente stocastica del tasso di rendimento ovvero la sua varianza che è = \(\sigma^2 \Delta t\)
+da cui:
+\[
+\Delta S = \mu S \Delta t + \sigma S \epsilon \sqrt{\Delta t}
+\]
+\(\frac{\Delta S}{S} \sim \mathcal{N}(\mu \Delta t, \sigma^2 \Delta t)\)
+\subsubsection{Parametri}
+\(\mu\) = tasso di rendimento annuo composto continuamente atteso. Se aumenta il livello di rischio non diversificabile o i tassi d'interesse dell'economia \(\rightarrow\) aumenta \(\mu\)
+\newline
+\(\sigma\) = volatilità del prezzo dell'azione ed è fondamentale nei derivati
+\newline
+la std di \(\frac{\Delta S}{S}\) in un intervallo di tempo \(\Delta t\) è = \(\sigma \sqrt{\Delta t}\)
+\newline
+Allora una prima approssimazione della std di \(\frac{\Delta S}{S}\) in \(T\) è:
+\[
+\text{std} \left( \frac{\Delta S}{S} \right) \approx \sigma \sqrt{T}
+\]
+Ciò significa che approssimativamente la volatilità può essere interpretata come la std di \(\frac{\Delta S}{S}\) in un intervallo di tempo 1 Anno.
+\subsubsection{Processi Correlati}
+Si estende l'analisi al caso di più variabili che seguono processi stocastici Correlati
+\newline
+\(X_1\), \(X_2\) variabili casuali correlate:
+\[
+dx_1 = a_1 dt + b_1 dz_1
+\]
+\[
+dx_2 = a_2 dt + b_2 dz_2
+\]
+In tempo discreto:
+\[
+\Delta X_1 = a_1 \Delta t + b_1 \epsilon_1 \sqrt{\Delta t}
+\]
+\[
+\Delta X_2 = a_2 \Delta t + b_2 \epsilon_2 \sqrt{\Delta t}
+\]
+con \(\epsilon_1\) e \(\epsilon_2\) che sono estratte da una distribuzione normale bivariata \(N(0, 1)\) con correlazione \(p\).
+I due processi di Wiener sono correlati con coefficiente di correlazione \(p\):
+\[
+\text{Cov}(\epsilon_1, \epsilon_2) = p \Longrightarrow \text{Corr}(dz_1, dz_2) = p
+\]
+Per ottenere campioni da una distribuzione normale standard con \(\epsilon_1\) e \(\epsilon_2\) che hanno correlazione \(p\):
+\[
+    \epsilon_1 = u
+    \epsilon_2 = p u + \sqrt{1 - p^2} v
+    \text{ con } u, v \sim N(0, 1) \text{ non correlati}
+\]
+\newpage
+\subsubsection{Lemma di Itô}
+Poniamo X segue processo di Itô:
+\[
+dX = a(X, t)dt + b(X, t)dz
+\]
+In base al \textbf{Lemma di Itô}, la funzione \( G \) di \( X \) e \( t \) segue il processo di Itô:
+\[
+dG = \left( \frac{\partial G}{\partial X} a + \frac{\partial G}{\partial t} + \frac{1}{2} \frac{\partial^2 G}{\partial X^2} b^2 \right) dt + \frac{\partial G}{\partial X} b dz
+\]
+Di conseguenza anche \(G\) segue un processo di Itô.
+\newline
+Tasso di deriva di \(G\):
+\[
+\frac{\partial G}{\partial X} a + \frac{\partial G}{\partial t} + \frac{1}{2} \frac{\partial^2 G}{\partial X^2} b^2
+\]
+Tasso di varianza di \(G\):
+\[
+\left(\frac{\partial G}{\partial X}\right)^2 b^2
+\]
+In base al lemma di Itô, il processo seguito da una funzione \( G(S, t) \) è anch'esso un processo di Itô.
+\[
+dG = \left( \frac{\partial G}{\partial S} \mu S + \frac{\partial G}{\partial t} + \frac{1}{2} \frac{\partial^2 G}{\partial S^2} \sigma^2 S^2\right) dt + \frac{\partial G}{\partial S} \sigma S dz
+\]
+con \(S\) e \(G\) influenzati dalla stessa fonte di incertezza \(dz\).
+\newpage
+\subsubsection{Log-normalità dei Prezzi della Azioni}
+Sia \(G = \ln(S)\)
+quindi:
+\[
+\frac{\partial G}{\partial S} = \frac{1}{S}
+\quad
+\frac{\partial G}{\partial t} = 0
+\quad
+\frac{\partial^2 G}{\partial S^2} = -\frac{1}{S^2}
+\]
+sempre in base al lemma di Itô:
+\[
+dG = \left( \frac{\partial G}{\partial S} \mu S + \frac{\partial G}{\partial t} + \frac{1}{2} \frac{\partial^2 G}{\partial S^2} \sigma^2 S^2\right) dt + \frac{\partial G}{\partial S} \sigma S dz
+\]
+Il processo seguito da \(G\) è:
+\[
+dG = \left( \mu - \frac{1}{2} \sigma^2 \right) dt + \sigma dz
+\]
+con \(\mu\) e \(\sigma\) costanti che indicano che \(G\) segue un processo di Wiener generalizzato con tasso di deriva \(\mu - \frac{1}{2} \sigma^2\) e tasso di varianza \(\sigma^2\).
+\newline
+Pertanto la variazione di \(G\) tra \(t_0\) e \(T\) è \(\sim N\left( \left( \mu - \frac{1}{2} \sigma^2 \right) T, \sigma^2 T \right)\)
+\newline
+Ciò implica:
+\[
+\ln(S_T) - \ln(S_0) \sim N\left( \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)
+\]
+\[
+\Longrightarrow \ln(S_T) \sim N\left( \ln(S_0) + \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)
+\]
+\newpage
+\subsection{Modello Black-Scholes per il Pricing delle Opzioni Europee}
+\subsubsection{Log-normalità dei Prezzi delle Azioni}
+Ipotizziamo tasso di variazione istantaneo del prezzo d'un'azione sia distribuito normalmente con \(\mu\) = tasso di rendimento atteso e \(\sigma\) = volatilità del prezzo dell'azione in base annuale.
+Il tasso di variazione del prezzo nell'intervallo \(\Delta t\) avrà quindi media \(\mu \Delta t\) e varianza \(\sigma^2 \Delta t\).
+\[
+\frac{\Delta S}{S} \sim N\left( \mu \Delta t, \sigma^2 \Delta t \right)
+\]
+Il modello implica che 
+\[
+\ln(S_T) - \ln(S_0) \sim N\left( \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)
+\]
+\[
+\Longrightarrow \ln(\frac{S_T}{S_0}) \sim N\left( \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)
+\]
+\[
+\Longrightarrow \ln(S_T) \sim N\left( \ln(S_0) + \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)
+\]
+Data quindi questa equazione \(\ln(S_T)\) è distribuita normalmente \(\Longrightarrow\) \(S_T\) è distribuita log-normalmente.
+\[
+\mathbb{E}(S_T) = S_0 e^{\mu T}
+\quad
+\mathrm{Var}(S_T) = S_0^2 e^{2\mu T} \left( e^{\sigma^2 T} - 1 \right)
+\]
+
+\subsubsection{Distribuzione del rendimento}
+Tramite le proprietà della log-normalità possiamo ricavare informazioni sulla distribuzione del rendimento dell'azione composto continuamente tra \(0\) e \(T\).
+\newline
+Sia \(\eta\) = tasso di rendimento annuo composto continuamente tra \(0\) e \(T\):
+\[
+\Longrightarrow S_T = S_0 e^{\eta T} \Longrightarrow \eta = \frac{1}{T} \ln\left(\frac{S_T}{S_0}\right)
+\]
+dato che \(\ln(\frac{S_T}{S_0})\) è distribuita normalmente con media \(\left( \mu - \frac{\sigma^2}{2} \right) T\) e varianza \(\sigma^2 T\), possiamo concludere che \(\eta\) è distribuita normalmente con media \(\frac{1}{T} \left( \mu - \frac{\sigma^2}{2} \right) T = \mu - \frac{\sigma^2}{2}\) e varianza \(\frac{\sigma^2 T}{T^2} = \frac{\sigma^2}{T}\).
+\[
+\Longrightarrow \eta \sim N\left( \mu - \frac{\sigma^2}{2}, \frac{\sigma^2}{T} \right)
+\]
+
+\newpage
+\subsubsection{Tasso di rendimento atteso}
+\(\mu\) = tasso di rendimento atteso dell'azione
+Importante:
+\[\frac{\Delta S}{S} \sim N\left( \mu \Delta t, \sigma^2 \Delta t \right)\]
+ciò mostra che \(\mu \Delta t\) è il tasso di variazione atteso di \(S\) in \(\Delta t\).
+\newline
+Dato che \(\Delta t\) molto piccola, si potrebbe pensare di porre \(\mu = \eta\) ma è un errore.
+\newline
+\(\eta = \frac{1}{T} \ln\left(\frac{S_T}{S_0}\right)\) quindi il valore atteso di \(\eta\) è:
+\[
+\mathbb{E}(\eta) = \mu - \frac{\sigma^2}{2}
+\]
+Supponiamo un numero di brevi intervalli molto elevato ognuno lungo \(\Delta t\); \(S_i\) il prezzo di \(S\) alla fine di ogni i-esimo intervallo.
+\newline
+\(\Longrightarrow \Delta S_i = S_i - S_{i-1}\) ed in base alle ipotesi sul comportamento del prezzo dell'azione la media aritmetica di \(\Delta S_i\) sarà:
+\[
+\mathbb{E}(\Delta S_i) = \mathbb{E}(S_i) - \mathbb{E}(S_{i-1}) = \mu \Delta t
+\]
+ma il tasso di rendimento atteso nell'intero periodo con \(\Delta t\) periodo di capitalizzazione è una media geometrica prossima a:
+\[
+\mathbb{E}(\eta) = \mu - \frac{\sigma^2}{2}
+\]
+\newpage
+\subsubsection{Volatilità Storiche}
+Volatilità \(\Longrightarrow\) \(\sigma\) = deviazione standard dei rendimenti composti continuamente in un intervallo di tempo 1 anno.
+Misura l'incertezza circa il futuro rendimento del prezzo dell'azione.
+\subsubsection{Stima della volatilità in base a dati Storici}
+Utilizziamo una serie storica dei tassi di variazione con il prezzo rilevato a intervalli di tempo fissi:
+\begin{itemize}
+    \item \(n+1\) = numero totale di osservazioni
+    \item \(S_i\) = prezzo dell'azione alla fine dell'i-esimo intervallo
+    \item \(\tau\) = lunghezza di ogni intervallo in anni
+    \item \(u_i\) = \(ln(\frac{S_i}{S_{i-1}})\) = tasso di rendimento composto continuamente nell'i-esimo intervallo
+    \item \(S\) = stima della std delle \(u_i\) = \(\sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (u_i - \bar{u})^2}\)
+\end{itemize}
+In base a \(\ln(\frac{S_T}{S_0}) \sim N\left( \left( \mu - \frac{\sigma^2}{2} \right) T, \sigma^2 T \right)\) la std di \(u_i\) è = \(\sigma \sqrt{\tau}\), pertanto \(S\) è stima di \(\sigma \sqrt{\tau}\) e quindi una stima di \(\sigma\) è:
+
+\[
+\hat{\sigma} = \frac{S}{\sqrt{\tau}}
+\]
+con errore standard della stima:
+\[
+\mathrm{SE}(\hat{\sigma}) = \frac{S}{\sqrt{n \tau}}
+\]
+\newpage
+\subsubsection{Concetti sottostanti il modello Black-Scholes-Merton}
+Si forma un portafoglio privo di rischio contenente opzioni e azioni. In assenza di arbitraggio, il prezzo dell'azione e dell'opzione sono entrambi influenzati dalla stessa fonte di incertezza: le variazioni del prezzo dell'azione.
+Il prezzo di 1 call è quindi correlato positivamente mentre quello di 1 put è correlato negativamente.
+In entrambi i casi il profitto o la perdita sulla posizione in azione è compensata dal profitto o dalla perdita sulla posizione in opzione, così il valore alla fine dell'intervallo di tempo, del portafoglio è privo di rischio, quindi certo.
+Il portafoglio rimane privo di rischio, per periodi istantaneamente brevi quindi solo se viene ribilanciato continuamente.
+\newline
+In ogni istante: 
+\begin{align}
+    \textbf{Tasso rendimento portafoglio = tasso di rendimento privo di rischio}
+\end{align}
+\subsubsection{Ipotesi del modello Black-Scholes-Merton}
+\begin{itemize}
+    \item Il prezzo dell'azione ha \(\mu\) e \(\sigma\) costanti
+    \item Sono consentite vendite allo scoperto
+    \item No Costi di transazione o tasse e titoli pienamente divisibili
+    \item Azione non paga dividenti durante la vita dell'opzione
+    \item No opportunità di arbitraggio
+    \item Titoli negoziati continuamente
+    \item \(r\) = tasso interesse a breve privo di rischio costante e noto
+\end{itemize}
+\newpage
+\subsubsection{Equazione Differenziale Fondamentale}
+\(S\) segue il processo:
+\[
+dS = \mu S dt + \sigma S dz
+\]
+abbiamo inoltre \(f\) funzione di prezzo dell'opzione che dipende da \(S\) e \(t\).
+\newline
+Abbiamo in base al lemma di Itô:
+\[
+df = \left(\frac{\partial f}{\partial S}\mu S + \frac{\partial f}{\partial t} + \frac{1}{2} \frac{\partial^2 f}{\partial S^2} \sigma^2 S^2 \right) dt + \frac{\partial f}{\partial S} \sigma S dz
+\]
+In termini discreti:
+\[
+\Delta S = \mu S \Delta t + \sigma S \Delta z
+\]
+\[
+\Delta f = \left(\frac{\partial f}{\partial S}\mu S + \frac{\partial f}{\partial t} + \frac{1}{2} \frac{\partial^2 f}{\partial S^2} \sigma^2 S^2 \right) \Delta t + \frac{\partial f}{\partial S} \sigma S \Delta z
+\]
+dato che per il lemma di Itô \(dz\) è la stessa fonte di incertezza per \(S\) e \(f\) \(\Longrightarrow\) \(\Delta z = \epsilon \sqrt{\Delta t}\) sono gli stessi per entrambi.
+\newline
+Allora scegliendo un portafoglio composto dall'azione e dal derivato il processo di Wiener può essere eliminato.
+\newline
+Il portafoglio è così composto:
+\begin{itemize}
+    \item -1 derivato dell'opzione (short)
+    \item \(\frac{\partial f}{\partial S}\) azione (long)
+\end{itemize}
+Il valore del portafoglio \(\Pi\) è:
+\[
+\Pi = \frac{\partial f}{\partial S} S - f
+\]
+la variazione del valore del portafoglio in \(\Delta t\) è:
+\[
+\Delta \Pi = \frac{\partial f}{\partial S} \Delta S - \Delta f \Longrightarrow \Delta \Pi = \left( -\frac{\partial f}{\partial t} - \frac{1}{2} \frac{\partial^2 f}{\partial S^2} \sigma^2 S^2 \right) \Delta t
+\]
+Si nota che non compare più il termine di rumore \(\Delta z\) \(\Longrightarrow\) il portafoglio è privo di rischio.
+\newline
+In base alla condizione (1) il tasso di rendimento del portafoglio deve essere
+\[
+\Delta \Pi = r \Pi \Delta t
+\]
+Se sostituisco ottengo:
+\[
+\left( \frac{\partial f}{\partial t} + \frac{1}{2} \frac{\partial^2 f}{\partial S^2} \sigma^2 S^2 \right) \Delta t = r \left( f - \frac{\partial f}{\partial S} S \right) \Delta t
+\]
+Dividendo per \(\Delta t\) e riordinando otteniamo:
+\[
+\frac{\partial f}{\partial t} + r S \frac{\partial f}{\partial S} + \frac{1}{2} \sigma^2 S^2 \frac{\partial^2 f}{\partial S^2} = r f
+\]
+Questa è l'equazione differenziale fondamentale di Black-Scholes-Merton.
+\newline
+Quest'ultima ha molteplici soluzioni che dipendono dalle condizioni di contorno, ovvero le condizioni che definiscono il valore del derivato per valori estremi di \(S\) e \(t\).
+\newline
+Nel caso di una call europea:
+\[
+f(S,t) = \max(S-K,0)
+\]
+con \(K\) prezzo di esercizio. Le condizioni di contorno sono:
+\[
+f(S,T) = \max(S-K,0)
+\]
+\[
+f(0,t) = 0
+\]
+\[
+f(S,t) \text{ è continua in } (S,t)
+\]
+Quando \(S\) e \(t\) cambiano anche \(\frac{\partial f}{\partial S} \) cambiano di conseguenza il portafoglio deve essere ribilanciato continuamente per rimanere privo di rischio.
+\subsubsection{Valutazione neutrale verso il rischio}
+Dato che non figurano le variabili che sono influenzate dal rischio, possiamo utilizzare la misura di rischio neutrale per valutare il prezzo delle opzioni. In questo contesto, il tasso di interesse privo di rischio \(r\) viene utilizzato come tasso di sconto per il calcolo del valore attuale delle aspettative di pagamento future.
+Il fatto che sia indipendente dalla propensione al rischio ci permette di affermare che se è vero che la propensione al rischio non figura nell'equazione differenziale allora è vero che non può influenzarne il risultato.
+\newline
+\(\Longrightarrow\) Possiamo ipotizzare qualunque cosa riguardo la propensione al rischio quindi per semplicità ipotizziamo che \(\mu = r\)
+\newpage
+\subsubsection{Formule Black-Scholes-Merton per Call e Put Europee}
+Formule per valutare c e p su titoli che non pagano dividendi:
+\[
+c(S,t) = N(d_1) S - N(d_2) K e^{-r(T-t)}
+\]
+\[
+p(S,t) = N(-d_2) K e^{-r(T-t)} - N(-d_1) S
+\]
+con
+\[
+d_1 = \frac{\ln(S/K) + (r + \frac{1}{2} \sigma^2)(T-t)}{\sigma \sqrt{T-t}}
+\]
+\[
+d_2 = d_1 - \sigma \sqrt{T-t}
+\]
+Con \(N(x)\) funzione di distribuzione cumulativa della normale standard.
+Finora abbiamo ipotizzato tassi d'interesse costanti ma anche quest'ultimi sono stocastici. \(r\) nell'equazione differenziale viene posto uguale allo zero-rate privo di rischio e ciò è corretto se \(r\) è una funzione nota del tempo e se \(r\) è stocastico purché \(S_T\) abbia distribuzione log-normale il parametro di volatilità si scelto appropriatamente.
+\subsubsection{Significato N(d1) e N(d2)}
+N(d2) è la probabilità che la call sia esercitata
+\newline
+N(d1) \(\Longrightarrow\) sia \(S_0N(d1)\) il valore atteso di una variabile che è = \(S_T\) se la \(S_T > K\) 0 altrimenti.
+\newline
+K viene pagato solo se il prezzo \(S_T\) è maggiore di \(K\). e la probabilità che ciò accada è = N(d2).
+\(\Longrightarrow\) valore atteso della call:
+\[
+S_0 N(d1)e^{r(T-t)} - K N(d2)
+\]
+che attualizzato ci fornisce la formula BSM:
+
+\[
+c(S,t) = N(d_1) S - N(d_2) K e^{-r(T-t)}
+\]
+può anche essere riscritta:
+\[
+c = e^{-rT}[S_0 e^{rT} \frac{N(d1)}{N(d2)}-K]N(d2)
+\]
+\newpage
+\subsubsection{Proprietà formula BSM}
+Proprietà importanti della formula BSM:
+\begin{itemize}
+    \item  quando \(S_0\) molto alto, call è quasi sempre esercitata \(\Longrightarrow c \approx S_0 - Ke^{-rT}\) ossia la formula del contratto forward. Questo in quanto per \(S_0\) molto alto \(d1\) e \(d2\) sono molto alti e quindi \(N(d1)\) e \(N(d2)\) sono prossimi a 1.
+    \item Se \(\sigma\) \(\rightarrow 0\) l'azione diventa priva di rischio \(\Longrightarrow S_0\) cresce al tasso \(r\) \(\rightarrow S_0e^{rt}\) e quindi il valore finale della call è \(S_0e^{rT} - K\) attualizzato a \(S_0 - Ke^{-rT}\)
+\end{itemize}
+Tutto questo è coerente perchè:
+\begin{itemize}
+\item Caso \textbf{\(S_0 > Ke^{-rT}\)} 
+\(\Longrightarrow \ln\left(\frac{S_0}{K}\right) > -rT \newline
+\Longrightarrow \ln\left(\frac{S_0}{K}\right) + rT > 0\) \newline
+con \(\sigma \rightarrow 0\) 
+\(\Longrightarrow d_1, d_2 \rightarrow +\infty\) 
+e quindi \(N(d_1), N(d_2) \rightarrow 1\) \newline
+e l'equazione diventa \(c = S_0 - K e^{-rT}\)
+\item Caso \textbf{\(S_0 < Ke^{-rT}\)}
+\(\Longrightarrow \ln\left(\frac{S_0}{K}\right) < -rT \newline
+\Longrightarrow \ln\left(\frac{S_0}{K}\right) + rT < 0\) \newline
+con \(\sigma \rightarrow 0\) 
+\(\Longrightarrow d_1, d_2 \rightarrow -\infty\) 
+e quindi \(N(d_1), N(d_2) \rightarrow 0\) \newline
+e l'equazione diventa \(c = 0\)
+\end{itemize}
+\newpage
+\subsection{Metodo Monte Carlo per il Pricing delle Opzioni Europee}
+\subsubsection{Fondamenti del Metodo Monte Carlo}
+Monte Carlo utilizza l'identità probabilistica al contrario: calcola il volume di un insieme di eventi interpretando il volume come una probabilità.
+\newline
+Per intenderci, campiona casualmente da un un'inverso di possibili risultati e prende solo una frazione casuale di punti che cadono all'interno di un determinato insieme come una stima del volume dell'insieme.
+\newline
+\textbf{Dal volume agli integrali} \newline
+\(\int_{0}^{1} f(x) \, dx\) è rappresentato da una media \(\mathbb{E}[f(U)]\) con \(U \sim \mathcal{U}\) tra 0 e 1.
+Abbiamo quindi bisogno di un meccanismo per disegnare i punti \(U_i\) indipendenti e uniformemente distribuiti nell'intervallo [0, 1].
+\newline
+Valutando \(f\) in \(n\) punti casuali e facendo la media dei risultati otteniamo \textbf{Stima Monte Carlo}:
+\[
+\hat{a}_n = \frac{1}{n} \sum_{i=1}^{n} f(U_i)
+\]
+Se \(f\) è integrabile nell'intervallo [0, 1] allora per la legge dei grandi numeri:
+\[
+\hat{a}_n \xrightarrow{n \to \infty} \int_{0}^{1} f(x) \, dx
+\]
+con probabilità 1.
+\newline
+Inoltre se \(f\) è quadrato-integrabile nell'intervallo [0, 1] allora possiamo impostare:
+\[
+    \sigma^2_f = \int_{0}^{1} (f(x) - a)^2 \, dx
+\]
+L'errore \(\hat{a}_n - a\) \(\sim\) \(\mathcal{N}(0, \sigma_f / \sqrt{n})\) per \(n\) grande \(\Longrightarrow\) la qualità quindi migliora all'aumentare di \(n\).
+\newline
+\(\sigma_f\) è spesso sconosciuta ma si può stimare usando un campionamento della std:
+\[
+S_f = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (f(U_i) - \hat{a}_n)^2}
+\]
+\newpage
+\subsubsection{Martingala}
+Un processo stocastico \((X_n)_{n \geq 0}\) è una martingala rispetto a una filtrazione \((\mathcal{F}_n)_{n \geq 0}\) se:
+\begin{itemize}
+    \item \(X_n\) è \(\mathcal{F}_n\)-misurabile per ogni \(n\)
+    \item \(\mathbb{E}[|X_n|] < +\infty\) per ogni \(n\)
+    \item \(\mathbb{E}[X_{n+1} | \mathcal{F}_n] = X_n\) quasi sicuramente
+\end{itemize}
+Le martingale hanno la proprietà di "non crescere" in media, il che le rende utili in vari contesti, tra cui il pricing delle opzioni.
+\end{document}
