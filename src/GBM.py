@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple
 
 # Se "src" è un package (cioè contiene __init__.py), l'import relativo è consigliato:
-from .brownian import simulate_standard_brownian_motion
+from brownian import simulate_standard_brownian_motion
 # In alternativa, senza package: from brownian import simulate_standard_brownian_motion
 
 def simulate_gbm(
