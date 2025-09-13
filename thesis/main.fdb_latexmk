@@ -1,8 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1756295163.3024 "/Users/emanuelelippi/TesiProject/main.tex" "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.pdf" "main" 1756295163.72385 0
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.aux" 1756295163.67703 4234 6c5cde50e7d51ac073eba67e476ff801 "pdflatex"
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.toc" 1756295163.67793 2686 998d9b7e66dc01fb4805589b80eea615 "pdflatex"
-  "/Users/emanuelelippi/TesiProject/main.tex" 1756295162.373 33558 76c5994b9b91a91adfc6acea95a9b09f ""
+["pdflatex"] 1757494654.4339 "main.tex" "main.pdf" "main" 1757494654.83118 0
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1136768653 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -71,9 +68,12 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1755266014 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1755265984 3345732 a916d760ae1cf2a8779673026370c3c3 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
+  "main.aux" 1757494654.77328 4643 ca8498f32bdaf782253446c957746340 "pdflatex"
+  "main.tex" 1757494049.42464 33830 389ab2e2e1c5d066402a06f1b9dce715 ""
+  "main.toc" 1757494654.77435 2972 630d2d64ae314fd1b331f41ef3614f63 "pdflatex"
   (generated)
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.aux"
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.log"
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.pdf"
-  "/Users/emanuelelippi/Library/Mobile Documents/com~apple~CloudDocs/Università/Tesi/Project/main.toc"
+  "main.aux"
+  "main.log"
+  "main.pdf"
+  "main.toc"
   (rewritten before read)

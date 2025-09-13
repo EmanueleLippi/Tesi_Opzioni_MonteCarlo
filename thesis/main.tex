@@ -59,6 +59,26 @@ Il documento è strutturato come segue:
 \end{itemize}
 
 \newpage
+
+
+\section{Capitolo 1: Richiami calcolo stocastico: univariato}
+\subsection{Processi stocastici e Calcoli stocastici}
+\subsubsection{Spazio di probabilità e filtrazione di informazioni}
+Lo spazio di probabilità è una tripla \((\Omega, \mathcal{F}, P)\) dove:
+\begin{itemize}
+    \item \(\Omega\) è lo spazio dei campioni, ossia l'insieme di tutti i possibili risultati di un evento incerto
+    \item \(\mathcal{F}\) è l'insieme degli eventi a cui è possibile assegnare una probabilità. Un evento è definito come un'insieme di possibili risultati, quindi un sottoinsieme di \(\Omega\)
+    \item \(\P\) è la misura di probabilità: una funzione da \(\mathcal{F}\) in \([0, 1]\). Le condizioni generali che deve rispettare questa funzione sono:
+    \begin{itemize}
+        \item \(\P(\Omega) = 1\) & \(P(\emptyset) = 0\)
+        \item dati \(F1, F2, \ldots, F_n\) \(\in \mathcal{F}\) con \(F_i \cap F_j = \emptyset\) per ogni \(i \neq j\), allora:
+\[
+\P\left(\bigcup_{i=1}^{\infty} F_i\right) = \sum_{i=1}^{\infty} \P(F_i)
+\]
+    \end{itemize}
+\end{itemize}
+
+\newpage
 \section{Capitolo 1: Fondamenti del Pricing delle Opzioni}
 
 Il pricing delle opzioni è un tema centrale nella finanza moderna, in quanto consente di determinare il valore di strumenti finanziari derivati. Le opzioni sono contratti che conferiscono il diritto, ma non l'obbligo, di acquistare o vendere un'attività sottostante a un prezzo predeterminato entro una certa scadenza. La valutazione di queste opzioni è fondamentale per gli investitori e le istituzioni finanziarie, poiché influisce sulle decisioni di investimento e sulla gestione del rischio.
