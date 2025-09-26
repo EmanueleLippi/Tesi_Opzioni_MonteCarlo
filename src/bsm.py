@@ -113,45 +113,53 @@ def implied_vol(target_price: ArrayLike, S: ArrayLike, K: ArrayLike, T: ArrayLik
     S, K, T, r, q, target_price = _broadcast(S, K, T, r, q, target_price)
     out = np.full_like(S, np.nan, dtype=float)
 
-    # maschere: solo elementi con T>0 e prezzo nei limiti
+    # validità: T > 0 e prezzo entro i limiti no-arbitrage
     mask_valid_T = T > 0.0
     lower, upper = _no_arb_bounds(S, K, T, r, q, kind)
     mask_in_bounds = (target_price >= lower - 1e-12) & (target_price <= upper + 1e-12)
     mask = mask_valid_T & mask_in_bounds
 
-    if not np.any(mask):
-        return float(out) if out.shape == () else out
-
-    # funzione per brentq su scalare
     def f_sigma(sig, s, k, t, rr, qq, tp):
         return bs_price(s, k, t, rr, sig, qq, kind) - tp
 
-    # loop sugli elementi validi (brentq non è vettoriale; data la robustezza va bene così)
-    idxs = np.argwhere(mask)
-    for (i, j, *rest) in (idxs if idxs.ndim > 1 else [idxs]):
-        # supporta qualunque dimensionalità
-        inds = tuple(int(v) for v in ([i, j] + rest)) if idxs.ndim > 1 else (int(idxs),)
-
-        s = S[inds]; k = K[inds]; t = T[inds]; rr = r[inds]; qq = q[inds]; tp = target_price[inds]
-
-        # verifica bracket; se necessario allarga hi una volta
+    # --- Caso SCALARE ---
+    if np.ndim(mask) == 0:
+        if not bool(mask):
+            return float(out)  # NaN
+        s = float(S); k = float(K); t = float(T); rr = float(r); qq = float(q); tp = float(target_price)
         flo = f_sigma(lo, s, k, t, rr, qq, tp)
         fhi = f_sigma(hi, s, k, t, rr, qq, tp)
+        hi_local = hi
         if flo * fhi > 0:
             hi2 = 10.0
             fhi = f_sigma(hi2, s, k, t, rr, qq, tp)
             if flo * fhi > 0:
-                # non converge: lascia NaN
+                return float("nan")
+            hi_local = hi2
+        iv = brentq(f_sigma, lo, hi_local, args=(s, k, t, rr, qq, tp), xtol=tol, maxiter=max_iter)
+        return float(iv) if isfinite(iv) else float("nan")
+
+    # --- Caso ARRAY ---
+    true_idxs = list(zip(*np.where(mask)))
+    if not true_idxs:
+        return float(out) if out.shape == () else out
+
+    for inds in true_idxs:
+        s = S[inds]; k = K[inds]; t = T[inds]; rr = r[inds]; qq = q[inds]; tp = target_price[inds]
+        flo = f_sigma(lo, s, k, t, rr, qq, tp)
+        fhi = f_sigma(hi, s, k, t, rr, qq, tp)
+        hi_local = hi
+        if flo * fhi > 0:
+            hi2 = 10.0
+            fhi = f_sigma(hi2, s, k, t, rr, qq, tp)
+            if flo * fhi > 0:
+                out[inds] = np.nan
                 continue
             hi_local = hi2
-        else:
-            hi_local = hi
-
         try:
             iv = brentq(f_sigma, lo, hi_local, args=(s, k, t, rr, qq, tp), xtol=tol, maxiter=max_iter)
             out[inds] = iv if isfinite(iv) else np.nan
         except Exception:
-            # fall-back: NaN
             out[inds] = np.nan
 
     return float(out) if out.shape == () else out
