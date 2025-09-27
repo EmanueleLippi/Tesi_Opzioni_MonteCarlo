@@ -15,6 +15,8 @@ from typing import Tuple # per tipi di ritorno
 import numpy as np # per array e funzioni numeriche
 from bsm import bs_price # per il prezzo di BS come controllo
 
+__all__ = ["JDParams", "simulate_merton_jd", "price_euro_call_mc_jd", "discounted_martingale_error", "merton_cf_call"]
+
 @dataclass
 class JDParams: # classe per i parametri del modello
     sigma: float # volatilità del processo di diffusione
@@ -181,3 +183,84 @@ def discounted_martingale_error(S0: float, r: float, q: float, params: JDParams,
     _, S = simulate_merton_jd(S0, r, q, params, T, N, M, seed, antithetic=True) # simulo le traiettorie di Merton JD (antithetic per ridurre varianza)
     est = np.exp(-(r-q)*T) * S[:, -1].mean() # stima di E_Q[e^{-rT} S_T]
     return (est - S0) / S0 # errore relativo |E_Q[e^{-rT} S_T] - S_0| / S0
+
+def merton_cf_call(
+    S: float | np.ndarray,
+    K: float | np.ndarray,
+    T: float | np.ndarray,
+    r: float | np.ndarray,
+    q: float | np.ndarray,
+    params: JDParams,
+    trunc: int = 60
+) -> np.ndarray | float:
+    """
+    Prezzo CHIUSO (Merton, 1976) per CALL europea con salti lognormali.
+    
+    Dinamica sotto Q:
+        dS_t / S_{t-} = (r - q - λ κ) dt + σ dW_t + dJ_t,
+    con N_t ~ Poisson(λ t), Y ~ N(μ_J, σ_J^2), J = e^{Y} - 1, κ = E[e^Y - 1] = e^{μ_J + 0.5 σ_J^2} - 1.
+
+    La formula è una miscela di Poisson di prezzi Black–Scholes–Merton:
+        C = Σ_{k=0}^∞ e^{-λ T} (λ T)^k / k! * C_BS( S e^{k μ_J}, K, T, r_eff + q, σ_eff(k), q ),
+    dove:
+        r_eff = r - q - λ κ,       σ_eff(k) = sqrt( σ^2 + k σ_J^2 / T ).
+
+    Parametri
+    ---------
+    S, K, T, r, q : scalari o array broadcastabili
+    params        : JDParams(sigma, lam, mu_J, sigma_J)
+    trunc         : int, troncamento della somma di Poisson (default 60)
+
+    Ritorna
+    -------
+    float o np.ndarray in base allo shape broadcastato.
+
+    Note
+    ----
+    - Se λ=0, il prezzo coincide con BSM standard (consistenza limite).
+    - La funzione usa la bs_price(), quindi l’argomento 'r' passato a bs_price
+      è (r_eff + q) per ottenere (r_eff - q) nel d1/d2 effettivo dell' implementazione.
+    """
+    if trunc < 0:
+        raise ValueError("trunc deve essere >= 0")
+
+    sigma = float(params.sigma)
+    lam = float(params.lam)
+    mu_J = float(params.mu_J)
+    sigma_J = float(params.sigma_J)
+
+    # broadcast degli input
+    S, K, T, r, q = np.broadcast_arrays(
+        np.asarray(S, dtype=float),
+        np.asarray(K, dtype=float),
+        np.asarray(T, dtype=float),
+        np.asarray(r, dtype=float),
+        np.asarray(q, dtype=float),
+    )
+
+    out = np.zeros_like(S, dtype=float) # array di output per i prezzi
+
+    # componente k della somma di Poisson e drift risk neutral della diffusione
+    k = np.exp(mu_J - 0.5 * sigma_J**2) - 1.0 # kappa = E[J-1] = exp(mu_J + 0.5*sigma_J^2) - 1
+    r_eff = r - q - lam * k # drift effettivo sotto Q
+
+    # Peso iniziale di Poisson e ricorsione per i pesi successivi
+    pois_weight = np.exp(-lam * T) # peso iniziale k=0
+
+    # Per T ~ 0, evitiamo divisioni nella σ_eff
+    T_safe = np.maximum(T, 1e-16)
+
+    for t in range(trunc + 1):
+        S_t = S * np.exp(t * mu_J) # S effettivo per il termine k
+        sigma_eff = np.sqrt(sigma**2 + (k * sigma_J**2) / T_safe) # σ_eff(k)
+
+        term_k = bs_price(S_t, K, T, r_eff + q, sigma_eff, q, kind="call") # prezzo BSM per il termine k
+        out += pois_weight * term_k # somma pesata
+
+        # Aggiorno il peso di Poisson per il prossimo k
+        if t < trunc: # evito calcolo inutile all'ultimo passo
+            pois_weight *= (lam * T) / (t + 1) # peso successivo
+
+    return float(out) if out.shape == () else out
+
+
