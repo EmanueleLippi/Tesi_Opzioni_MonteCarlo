@@ -224,12 +224,6 @@ def merton_cf_call(
     if trunc < 0:
         raise ValueError("trunc deve essere >= 0")
 
-    sigma = float(params.sigma)
-    lam = float(params.lam)
-    mu_J = float(params.mu_J)
-    sigma_J = float(params.sigma_J)
-
-    # broadcast degli input
     S, K, T, r, q = np.broadcast_arrays(
         np.asarray(S, dtype=float),
         np.asarray(K, dtype=float),
@@ -238,28 +232,32 @@ def merton_cf_call(
         np.asarray(q, dtype=float),
     )
 
-    out = np.zeros_like(S, dtype=float) # array di output per i prezzi
+    sigma   = float(params.sigma)
+    lam     = float(params.lam)
+    mu_J    = float(params.mu_J)
+    sigma_J = float(params.sigma_J)
 
-    # componente k della somma di Poisson e drift risk neutral della diffusione
-    k = np.exp(mu_J - 0.5 * sigma_J**2) - 1.0 # kappa = E[J-1] = exp(mu_J + 0.5*sigma_J^2) - 1
-    r_eff = r - q - lam * k # drift effettivo sotto Q
+    out = np.zeros_like(S, dtype=float)
 
-    # Peso iniziale di Poisson e ricorsione per i pesi successivi
-    pois_weight = np.exp(-lam * T) # peso iniziale k=0
+    # FIX 1: kappa corretto ( + 0.5 σ_J^2, NON - 0.5 )
+    kappa = np.exp(mu_J + 0.5 * sigma_J**2) - 1.0
+    r_eff = r - q - lam * kappa
 
-    # Per T ~ 0, evitiamo divisioni nella σ_eff
+    pois_weight = np.exp(-lam * T)
     T_safe = np.maximum(T, 1e-16)
 
     for t in range(trunc + 1):
-        S_t = S * np.exp(t * mu_J) # S effettivo per il termine k
-        sigma_eff = np.sqrt(sigma**2 + (k * sigma_J**2) / T_safe) # σ_eff(k)
+        # Spot e volatilità effettivi per il termine t
+        S_t = S * np.exp(t * mu_J)
+        # FIX 2: usare l'indice t nella σ_eff
+        sigma_eff = np.sqrt(sigma**2 + (t * sigma_J**2) / T_safe)
 
-        term_k = bs_price(S_t, K, T, r_eff + q, sigma_eff, q, kind="call") # prezzo BSM per il termine k
-        out += pois_weight * term_k # somma pesata
+        # r a bs_price come (r_eff + q) così bs_price usa (r_eff - q) internamente
+        term_t = bs_price(S_t, K, T, r_eff + q, sigma_eff, q, kind="call")
+        out += pois_weight * term_t
 
-        # Aggiorno il peso di Poisson per il prossimo k
-        if t < trunc: # evito calcolo inutile all'ultimo passo
-            pois_weight *= (lam * T) / (t + 1) # peso successivo
+        if t < trunc:
+            pois_weight *= (lam * T) / (t + 1.0)
 
     return float(out) if out.shape == () else out
 
